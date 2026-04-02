@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>QuantAI — Factor Analysis Terminal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     LOGIN SCREEN  (shown when user is logged out)
+     ═══════════════════════════════════════════════ -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Quant<em>AI</em></div>
+    <p class="login-tagline">Professional-grade factor analysis,<br>Monte Carlo simulation &amp; AI insights.</p>
+    <button id="google-login-btn" class="btn-google" onclick="window.auth.loginWithGoogle()">
+      <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z"/></svg>
+      Continue with Google
+    </button>
+    <p class="login-note">Your portfolio and watchlist are saved to your account.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MAIN APP  (shown when user is logged in)
+     ═══════════════════════════════════════════════ -->
+<div id="app" class="app hidden">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="wordmark">Quant<em>AI</em></div>
+    <div class="divider-v"></div>
+
+    <div class="search-field" id="search-field">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+        <circle cx="5.5" cy="5.5" r="4.5" stroke="#c2bdb4" stroke-width="1.2"/>
+        <path d="M9 9l3 3" stroke="#c2bdb4" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="search-input" placeholder="Search ticker…" maxlength="10" autocomplete="off"/>
+    </div>
+    <button class="btn primary" id="analyze-btn">Analyze</button>
+
+    <div class="ticker-strip" id="ticker-strip">
+      <div class="tick-item"><span class="tick-sym">SPY</span><span class="tick-val">552.84</span><span class="tick-chg pos">+0.84%</span></div>
+      <div class="tick-item"><span class="tick-sym">QQQ</span><span class="tick-val">471.20</span><span class="tick-chg pos">+1.12%</span></div>
+      <div class="tick-item"><span class="tick-sym">VIX</span><span class="tick-val">14.30</span><span class="tick-chg neg">−2.30%</span></div>
+    </div>
+
+    <!-- User avatar + logout -->
+    <div class="user-menu">
+      <img id="user-avatar" src="" alt="" class="avatar" onerror="this.style.display='none'"/>
+      <span id="user-name" class="user-name"></span>
+      <button class="btn" id="logout-btn" onclick="window.auth.logout()">Sign out</button>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="layout">
+
+    <!-- LEFT SIDEBAR -->
+    <aside class="panel panel-left">
+      <span class="label">Watchlist</span>
+      <div class="wl-add">
+        <input type="text" id="wl-input" placeholder="Add ticker…" maxlength="10" autocomplete="off"/>
+        <button id="wl-add-btn">Add</button>
+      </div>
+      <div id="wl-list"></div>
+
+      <div class="section-gap">
+        <span class="label">Portfolio</span>
+        <div id="port-list"></div>
+        <div class="port-add">
+          <input type="text" id="port-sym" placeholder="SYM" maxlength="8"/>
+          <input type="number" id="port-wt" placeholder="Wt%" min="1" max="100"/>
+          <button id="port-add-btn">Add</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN PANEL -->
+    <main class="panel panel-main" id="main-panel">
+      <!-- Empty state shown before any stock is selected -->
+      <div class="empty-state" id="empty-state">
+        <div class="empty-mark">QuantAI</div>
+        <p class="empty-hint">Enter a ticker symbol above to run<br>factor analysis, simulation &amp; AI insights.</p>
+        <div class="empty-chips">
+          <button class="chip" data-sym="AAPL">AAPL</button>
+          <button class="chip" data-sym="MSFT">MSFT</button>
+          <button class="chip" data-sym="NVDA">NVDA</button>
+          <button class="chip" data-sym="TSLA">TSLA</button>
+          <button class="chip" data-sym="AMZN">AMZN</button>
+        </div>
+      </div>
+
+      <!-- Stock analysis content injected here by app.js -->
+      <div id="stock-content" class="hidden"></div>
+    </main>
+
+    <!-- RIGHT SIDEBAR -->
+    <aside class="panel panel-right">
+      <span class="label">AI Assistant</span>
+      <div class="chat-box" id="chat-box">
+        <div class="chat-msg ai">Ask anything about a stock, your portfolio risk, or factor signals.</div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="ai-input" placeholder="Ask about any stock…"/>
+        <button id="ai-send-btn">Send</button>
+      </div>
+
+      <div class="section-gap">
+        <span class="label">Model Performance</span>
+        <div class="perf-row"><span class="perf-label">Momentum alpha</span><span class="perf-val pos">+6.2%</span></div>
+        <div class="perf-row"><span class="perf-label">Value alpha</span><span class="perf-val neg">−1.4%</span></div>
+        <div class="perf-row"><span class="perf-label">Quality alpha</span><span class="perf-val pos">+3.8%</span></div>
+        <div class="perf-row"><span class="perf-label">Win rate</span><span class="perf-val">61%</span></div>
+        <div class="perf-row"><span class="perf-label">Avg holding</span><span class="perf-val">47 days</span></div>
+      </div>
+
+      <div class="section-gap">
+        <span class="label">Your Performance</span>
+        <div class="perf-row"><span class="perf-label">vs S&amp;P 500</span><span class="perf-val neg">−2.1%</span></div>
+        <div class="perf-row"><span class="perf-label">High-vol regime</span><span class="perf-val neg">Underperforms</span></div>
+        <div class="perf-row"><span class="perf-label">Best sector</span><span class="perf-val pos">Technology</span></div>
+      </div>
+    </aside>
+
+  </div>
+</div><!-- /app -->
+
+<!-- Scripts — order matters -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+<!-- Firebase (replace config in auth.js) -->
+<script type="module">
+  import { initApp } from './app.js';
+  initApp();
+</script>
+
+</body>
+</html>
