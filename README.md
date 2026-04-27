@@ -109,7 +109,3 @@ This tool is for educational and experimental purposes only.
 It is not financial advice.
 
 ---
-
-## 👤 Author
-
-Built to explore how structured systems can improve decision-making in financial markets.
